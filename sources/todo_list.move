@@ -1,143 +1,105 @@
 module todo_list::todo_list {
-    use sui::object::{Self, UID};
-    use sui::tx_context::{Self, TxContext};
-    use sui::{event, transfer};
-    use std::string::String;
     use std::vector;
+    use sui::object::{UID};
+    use sui::tx_context;
 
-    const ENotOwner: u64 = 0;
-    const ETaskNotFound: u64 = 1;
-    const EEmptyTitle: u64 = 2;
+    //
+    // --- Struct Definitions ---
+    //
 
-    public struct Task has store, copy, drop {
+    /// Represents a single to-do task
+    public struct Task has store, drop { 
         id: u64,
-        title: String,
-        description: String,
+        description: vector<u8>,
         completed: bool,
     }
 
-    public struct TodoList has key {
+    /// Represents a TodoList object owned by a user
+    public struct TodoList has store, key {
         id: UID,
         owner: address,
         tasks: vector<Task>,
-        next_id: u64,
+        next_task_id: u64,
     }
 
-    public struct TaskAdded has copy, drop {
-        list_owner: address,
-        task_id: u64,
-        title: String,
-    }
+    //
+    // --- Core Functions ---
+    //
 
-    public struct TaskCompleted has copy, drop {
-        list_owner: address,
-        task_id: u64,
-    }
-
-    public struct TaskDeleted has copy, drop {
-        list_owner: address,
-        task_id: u64,
-    }
-
-    public entry fun create_list(ctx: &mut TxContext) {
-        let list = TodoList {
-            id: object::new(ctx),
+    /// Create a new TodoList object
+    public fun create_list(ctx: &mut tx_context::TxContext): TodoList {
+        let id = sui::object::new(ctx);
+        TodoList {
+            id,
             owner: tx_context::sender(ctx),
             tasks: vector::empty<Task>(),
-            next_id: 0,
-        };
-        transfer::transfer(list, tx_context::sender(ctx));
+            next_task_id: 0,
+        }
     }
 
-    public entry fun add_task(
-        list: &mut TodoList,
-        title: String,
-        description: String,
-        ctx: &mut TxContext
-    ) {
-        assert!(tx_context::sender(ctx) == list.owner, ENotOwner);
-        assert!(string::length(&title) > 0, EEmptyTitle);
-
+    /// Add a new task
+    public fun add_task(list: &mut TodoList, description: vector<u8>) {
         let task = Task {
-            id: list.next_id,
-            title,
+            id: list.next_task_id,
             description,
             completed: false,
         };
         vector::push_back(&mut list.tasks, task);
-        event::emit(TaskAdded {
-            list_owner: list.owner,
-            task_id: list.next_id,
-            title: task.title,
-        });
-        list.next_id = list.next_id + 1;
+        list.next_task_id = list.next_task_id + 1;
     }
 
-    public entry fun complete_task(list: &mut TodoList, task_id: u64, ctx: &mut TxContext) {
-        assert!(tx_context::sender(ctx) == list.owner, ENotOwner);
-        let index = find_task_index(&list.tasks, task_id);
-        let task = vector::borrow_mut(&mut list.tasks, index);
-        task.completed = true;
-        event::emit(TaskCompleted {
-            list_owner: list.owner,
-            task_id,
-        });
+    /// Mark a task as completed
+    public fun complete_task(list: &mut TodoList, task_id: u64) {
+        let mut i = 0;
+        while (i < vector::length(&list.tasks)) {
+            let t_ref = vector::borrow_mut(&mut list.tasks, i); 
+            if (t_ref.id == task_id) {
+                t_ref.completed = true;
+                break
+            };
+            i = i + 1;
+        }
     }
 
-    public entry fun delete_task(list: &mut TodoList, task_id: u64, ctx: &mut TxContext) {
-        assert!(tx_context::sender(ctx) == list.owner, ENotOwner);
-        let index = find_task_index(&list.tasks, task_id);
-        vector::remove(&mut list.tasks, index);
-        event::emit(TaskDeleted {
-            list_owner: list.owner,
-            task_id,
-        });
+    /// Delete a task by id
+    public fun delete_task(list: &mut TodoList, task_id: u64) {
+        let mut i = 0;
+        while (i < vector::length(&list.tasks)) {
+            let t_ref = vector::borrow(&list.tasks, i); 
+            if (t_ref.id == task_id) {
+                let _removed_task = vector::remove(&mut list.tasks, i); 
+                break
+            };
+            i = i + 1;
+        }
     }
+    
+    //
+    // --- Public View Functions (Getters for Testing) ---
+    //
 
-    public fun task_count(list: &TodoList): u64 {
+    /// Returns the number of tasks
+    public fun get_task_count(list: &TodoList): u64 {
         vector::length(&list.tasks)
     }
 
-    fun find_task_index(tasks: &vector<Task>, task_id: u64): u64 {
-        let len = vector::length(tasks);
-        let mut i = 0;
-        while (i < len) {
-            let task = vector::borrow(tasks, i);
-            if (task.id == task_id) {
-                return i;
-            };
-            i = i + 1;
-        };
-        abort ETaskNotFound;
+    /// Returns the owner of the TodoList
+    public fun get_owner(list: &TodoList): address {
+        list.owner
     }
-}
-/// Error codes
-const ENotOwner: u64 = 0;
-const ETaskNotFound: u64 = 1;
-const EEmptyTitle: u64 = 2;
 
-/// Task structure
-public struct Task has store, copy, drop {
-    id: u64,
-    title: String,
-    description: String,
-    completed: bool,
-}
+    /// Returns a reference to a specific task
+    public fun get_task(list: &TodoList, index: u64): &Task {
+        vector::borrow(&list.tasks, index)
+    }
 
-/// TODO List structure
-public struct TodoList has key {
-    id: UID,
-    owner: address,
-    tasks: vector<Task>,
-    next_id: u64,
-}
+    /// Returns a task’s description
+    public fun get_task_description(task: &Task): vector<u8> {
+        task.description
+    }
 
-/// Create a new TODO list
-public entry fun create_list(ctx: &mut TxContext) {
-    ...
-}
-
-/// Add a task
-public entry fun add_task(...) {
-    ...
+    /// Returns whether a task is completed
+    public fun is_task_completed(task: &Task): bool {
+        task.completed
+    }
 }

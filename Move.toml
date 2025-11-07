@@ -6,13 +6,7 @@ license = "MIT"
 edition = "2024"
 
 [dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework", rev = "e4f3c5d" }
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "framework/testnet" }
 
 [addresses]
 todo_list = "0x0"
-
-[dev-dependencies]
-# Add test-only dependencies here if needed
-
-[dev-addresses]
-# Override named addresses for testing if needed
