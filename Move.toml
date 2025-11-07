@@ -1,12 +1,10 @@
 [package]
 name = "simple_todo_list"
 version = "0.0.1"
-authors = ["24CSE179"]
-license = "MIT"
-edition = "2024"
-
-[dependencies]
-Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework", rev = "e4f3c5d" }
+edition = "2024.beta"
 
 [addresses]
-simple_todo_list = "0x0"
+todo = "0xa96f4d75d69f318a02a11b1a5c67ba978e38235291b79cbc2f608c595faddd9b"
+
+[dependencies]
+Sui = { git = "https://github.com/MystenLabs/sui.git", subdir = "crates/sui-framework/packages/sui-framework", rev = "mainnet" }
