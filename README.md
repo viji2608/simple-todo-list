@@ -128,9 +128,9 @@ This project demonstrates key **Sui Move** concepts:
 
 1. **Build the project**
 
-   ```bash
+   
    sui move build
-   ```
+ 
 
 2. **Run tests**
 
@@ -140,9 +140,9 @@ This project demonstrates key **Sui Move** concepts:
 
 3. **Publish to the network**
 
-   ```bash
+   
    sui client publish --gas-budget 100000000
-   ```
+   
 
 4. **Interact with the module**
 
@@ -153,10 +153,8 @@ This project demonstrates key **Sui Move** concepts:
 
 ---
 
-## 📜 License
 
-This project was built for **educational and hackathon purposes**.
-You’re encouraged to modify, extend, and improve it!
+
 
 ---
 
@@ -168,7 +166,7 @@ Participants can now:
 ✅ Manage and complete tasks
 ✅ Track progress transparently on the Sui blockchain
 
-Good luck with your hackathon! 🏆
+
 
 ---
 c36590e3030edc4542a2ad7834ca3d5c2bb1463d
