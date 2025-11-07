@@ -111,3 +111,33 @@ module todo_list::todo_list {
         abort ETaskNotFound;
     }
 }
+/// Error codes
+const ENotOwner: u64 = 0;
+const ETaskNotFound: u64 = 1;
+const EEmptyTitle: u64 = 2;
+
+/// Task structure
+public struct Task has store, copy, drop {
+    id: u64,
+    title: String,
+    description: String,
+    completed: bool,
+}
+
+/// TODO List structure
+public struct TodoList has key {
+    id: UID,
+    owner: address,
+    tasks: vector<Task>,
+    next_id: u64,
+}
+
+/// Create a new TODO list
+public entry fun create_list(ctx: &mut TxContext) {
+    ...
+}
+
+/// Add a task
+public entry fun add_task(...) {
+    ...
+}
