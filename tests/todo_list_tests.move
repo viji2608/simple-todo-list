@@ -1,27 +1,33 @@
-module simple_todo_list::todo_list_tests {
+#[test_only]
+module todo_list::todo_list_tests {
     use std::string;
-    use std::vector;
-    use sui::tx_context::TxContext;
-    use simple_todo_list::todo_list::{TodoList, add_task, create_list, complete_task, delete_task, task_count};
+    use sui::tx_context;
+    use todo_list::todo_list;
 
     #[test]
-    public entry fun test_add_and_count(ctx: &mut TxContext) {
-        create_list(ctx);
-        let mut list = borrow_global_mut<TodoList>(tx_context::sender(ctx));
-        add_task(&mut list, string::utf8(b"Buy milk"), string::utf8(b"From local store"), ctx);
-        add_task(&mut list, string::utf8(b"Read book"), string::utf8(b"Chapter 5"), ctx);
-        let count = task_count(&list);
-        assert!(count == 2, 100);
+    public fun test_create_and_add_task(ctx: &mut tx_context::TxContext) {
+        // Create a new list
+        todo_list::create_list(ctx);
+        let list = tx_context::take_from_sender<todo_list::TodoList>(ctx);
+
+        // Add a task
+        todo_list::add_task(&mut list, string::utf8(b"Buy milk"), string::utf8(b"From local store"), ctx);
+
+        // Check task count
+        let count = todo_list::task_count(&list);
+        assert!(count == 1, 100);
     }
 
     #[test]
-    public entry fun test_complete_and_delete(ctx: &mut TxContext) {
-        create_list(ctx);
-        let mut list = borrow_global_mut<TodoList>(tx_context::sender(ctx));
-        add_task(&mut list, string::utf8(b"Write code"), string::utf8(b"Finish module"), ctx);
-        complete_task(&mut list, 0, ctx);
-        delete_task(&mut list, 0, ctx);
-        let count = task_count(&list);
+    public fun test_complete_and_delete_task(ctx: &mut tx_context::TxContext) {
+        todo_list::create_list(ctx);
+        let list = tx_context::take_from_sender<todo_list::TodoList>(ctx);
+
+        todo_list::add_task(&mut list, string::utf8(b"Read book"), string::utf8(b"Chapter 1"), ctx);
+        todo_list::complete_task(&mut list, 0, ctx);
+        todo_list::delete_task(&mut list, 0, ctx);
+
+        let count = todo_list::task_count(&list);
         assert!(count == 0, 101);
     }
 }
